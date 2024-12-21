@@ -154,12 +154,14 @@ def integrare():
         func_str = request.form['functie']
         variabila = request.form['variabila']
         try:
-            if 'lim_inf' in request.form and 'lim_sup' in request.form:
+            if 'lim_inf' in request.form and 'lim_sup' in request.form and request.form['lim_inf'] and request.form['lim_sup']:
                 lim_inf = float(request.form['lim_inf'])
                 lim_sup = float(request.form['lim_sup'])
                 rezultat = integrare_definita_functie(func_str, variabila, lim_inf, lim_sup)
             else:
                 rezultat = integrare_normala_functie(func_str, variabila)
+        except ValueError:
+            rezultat = "Eroare: Limitele de integrare trebuie să fie numere valide."
         except Exception as e:
             rezultat = f"Eroare: {e}"
         return render_template('integrare.html', func_str=func_str, variabila=variabila, rezultat=rezultat)
