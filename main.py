@@ -9,10 +9,8 @@ def upload_to_gcs(file, bucket_name):
     blob.upload_from_file(file)
     return f"Uploaded {file.filename} to {bucket_name}."
 
-
 app = Flask(__name__)
 
-# Funcții matematice
 def adunare(a, b):
     return a + b
 
@@ -28,24 +26,23 @@ def impartire(a, b):
     else:
         return "Împărțirea la 0 nu este permisă."
 
-def derivare(func_str, variabila):
+def derivare_functie(func_str, variabila):
     variabila_sym = symbols(variabila)
     func = sympify(func_str)
     derivata = diff(func, variabila_sym)
-    return latex(derivata)  # Returnăm rezultatul în format LaTeX
+    return latex(derivata)
 
-
-def integrare_normala(func_str, variabila):
+def integrare_normala_functie(func_str, variabila):
     variabila_sym = symbols(variabila)
     func = sympify(func_str)
     integral = integrate(func, variabila_sym)
-    return latex(integral)  # Returnăm rezultatul în format LaTeX
+    return latex(integral)
 
-def integrare_definita(func_str, variabila, lim_inf, lim_sup):
+def integrare_definita_functie(func_str, variabila, lim_inf, lim_sup):
     variabila_sym = symbols(variabila)
     func = sympify(func_str)
     integral = integrate(func, (variabila_sym, lim_inf, lim_sup))
-    return latex(integral)  # Returnăm rezultatul în format LaTeX
+    return latex(integral)
 
 class Matrice:
     def __init__(self, valori):
@@ -76,11 +73,9 @@ class Matrice:
             if self.nr_coloane != alta.nr_linii:
                 raise ValueError("Numărul de coloane al primei matrice trebuie să fie egal cu numărul de linii al celei de-a doua matrice.")
             rezultat = [[0 for _ in range(len(alta.valori[0]))] for _ in range(len(self.valori))]
-        
-            # Calculăm produsul matricial
-            for i in range(len(self.valori)):  # Iterăm peste liniile primei matrice
-                for j in range(len(alta.valori[0])):  # Iterăm peste coloanele celei de-a doua matrice
-                    for k in range(len(alta.valori)):  # Iterăm peste coloanele primei matrice și liniile celei de-a doua matrice
+            for i in range(len(self.valori)):
+                for j in range(len(alta.valori[0])):
+                    for k in range(len(alta.valori)):
                         rezultat[i][j] += self.valori[i][k] * alta.valori[k][j]
             return Matrice(rezultat)
         else:
@@ -97,10 +92,8 @@ class Matrice:
         if self.nr_linii != self.nr_coloane:
             raise TypeError("Inversa poate fi calculata doar pentru matrice patratice")
         matrice_sympy = Matrix(self.valori)
-
         if matrice_sympy.det() == 0:
             raise TypeError("Matricea nu este inversabila, determinantul este 0.")
-        
         inversa_sympy = matrice_sympy.inv()
         inversa_valori = inversa_sympy.tolist()
         return Matrice(inversa_valori)
@@ -108,16 +101,16 @@ class Matrice:
     def __pow__(self, exponent):
         if self.nr_linii != self.nr_coloane:
             raise TypeError("Ridicarea la putere este definita doar pentru matrice patratice.")
-        if not isinstance(exponent, int) or exponent<0:
+        if not isinstance(exponent, int) or exponent < 0:
             raise TypeError("Exponentul trebuie sa fie un numar intreg pozitiv.")
         if exponent == 0:
-            identitate = [[1 if i==j else 0 for j in range(self.nr_coloane)] for i in range(self.nr_linii)]
+            identitate = [[1 if i == j else 0 for j in range(self.nr_coloane)] for i in range(self.nr_linii)]
             return Matrice(identitate)
         rezultat = self
-        for _ in range(exponent-1):
+        for _ in range(exponent - 1):
             rezultat = rezultat * self
         return rezultat
-# Rute Flask
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -148,7 +141,7 @@ def derivare():
         func_str = request.form['functie']
         variabila = request.form['variabila']
         try:
-            rezultat = derivare(func_str, variabila)
+            rezultat = derivare_functie(func_str, variabila)
         except Exception as e:
             rezultat = f"Eroare: {e}"
         return render_template('derivare.html', func_str=func_str, variabila=variabila, rezultat=rezultat)
@@ -164,46 +157,41 @@ def integrare():
             if 'lim_inf' in request.form and 'lim_sup' in request.form:
                 lim_inf = float(request.form['lim_inf'])
                 lim_sup = float(request.form['lim_sup'])
-                rezultat = integrare_definita(func_str, variabila, lim_inf, lim_sup)
+                rezultat = integrare_definita_functie(func_str, variabila, lim_inf, lim_sup)
             else:
-                rezultat = integrare_normala(func_str, variabila)
+                rezultat = integrare_normala_functie(func_str, variabila)
         except Exception as e:
             rezultat = f"Eroare: {e}"
         return render_template('integrare.html', func_str=func_str, variabila=variabila, rezultat=rezultat)
     return render_template('integrare.html')
 
-@app.route('/matrice', methods = ['GET', 'POST'])
+@app.route('/matrice', methods=['GET', 'POST'])
 def matrice():
     return render_template('matrice.html')
 
-@app.route('/matrice/adunare', methods = ['GET', 'POST'])
+@app.route('/matrice/adunare', methods=['GET', 'POST'])
 def matrice_adunare():
     rezultat = None
     if request.method == 'POST':
         try:
-            mat1 = eval(request.form ['matrice1'])
-            mat2 = eval(request.form ['matrice2'])
-
+            mat1 = eval(request.form['matrice1'])
+            mat2 = eval(request.form['matrice2'])
             mat1 = Matrice(mat1)
             mat2 = Matrice(mat2)
-
-            suma = mat1+mat2
-
+            suma = mat1 + mat2
             rezultat = suma.__repr__()
         except Exception as e:
             rezultat = f"Eroare: {e}"
-    return render_template("matrice_adunare.html", rezultat = rezultat)
+    return render_template("matrice_adunare.html", rezultat=rezultat)
 
-@app.route('/matrice/inmultire', methods = ['GET', 'POST'])
+@app.route('/matrice/inmultire', methods=['GET', 'POST'])
 def matrice_inmultire():
     rezultat = None
     if request.method == 'POST':
         try:
             mat1 = eval(request.form['matrice1'])
             operand = request.form['operand']
-
             mat1 = Matrice(mat1)
-
             if operand.isdigit() or '.' in operand:
                 scalar = float(operand)
                 rezultat = mat1 * scalar
@@ -214,9 +202,9 @@ def matrice_inmultire():
             rezultat = rezultat.__repr__()
         except Exception as e:
             rezultat = f"Eroare: {e}"
-    return render_template("matrice_inmultire.html", rezultat = rezultat)
+    return render_template("matrice_inmultire.html", rezultat=rezultat)
 
-@app.route('/matrice/transpusa', methods = ['GET', 'POST'])
+@app.route('/matrice/transpusa', methods=['GET', 'POST'])
 def matrice_transpusa():
     rezultat = None
     if request.method == 'POST':
@@ -226,9 +214,9 @@ def matrice_transpusa():
             rezultat = mat.transpusa().__repr__()
         except Exception as e:
             rezultat = f"Eroare: {e}"
-    return render_template("matrice_transpusa.html", rezultat = rezultat)
+    return render_template("matrice_transpusa.html", rezultat=rezultat)
 
-@app.route('/matrice/inversa', methods = ['GET', 'POST'])
+@app.route('/matrice/inversa', methods=['GET', 'POST'])
 def matrice_inversa():
     rezultat = None
     if request.method == 'POST':
@@ -238,9 +226,9 @@ def matrice_inversa():
             rezultat = mat.inversa().__repr__()
         except Exception as e:
             rezultat = f"Eroare: {e}"
-    return render_template("matrice_inversa.html", rezultat = rezultat)
+    return render_template("matrice_inversa.html", rezultat=rezultat)
 
-@app.route('/matrice/putere', methods = ['GET', 'POST'])
+@app.route('/matrice/putere', methods=['GET', 'POST'])
 def matrice_putere():
     rezultat = None
     if request.method == 'POST':
@@ -252,8 +240,7 @@ def matrice_putere():
             rezultat = rezultat.__repr__()
         except Exception as e:
             rezultat = f"Eroare: {e}"
-    return render_template ('matrice_putere.html', rezultat = rezultat)
-
+    return render_template('matrice_putere.html', rezultat=rezultat)
 
 @app.route("/")
 def home():
